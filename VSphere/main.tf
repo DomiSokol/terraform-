@@ -49,7 +49,10 @@ resource "vsphere_virtual_machine" "vm" {
     label            = "disk0"
     size             = 10
   }
-
+  cdrom {
+    client_device = true
+  }
+  
   clone {
     template_uuid = "${data.vsphere_virtual_machine.template.id}"
 
