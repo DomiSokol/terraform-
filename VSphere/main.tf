@@ -22,6 +22,13 @@ data "vsphere_virtual_machine" "template" {
   datacenter_id = "${data.vsphere_datacenter.dc.id}"
 }
 
+
+provider "vsphere" {
+
+  # If you have a self-signed cert
+  allow_unverified_ssl = true
+}
+
 resource "vsphere_virtual_machine" "vm" {
   name             = "terraform-test"
   resource_pool_id = "${data.vsphere_compute_cluster.cluster.resource_pool_id}"
