@@ -1,15 +1,3 @@
-variable "vm_name" {
-  type        = string
-  description = "VM Name"
-}
-
-
-provider "vsphere" {
-
-  # If you have a self-signed cert
-  allow_unverified_ssl = true
-}
-
 data "vsphere_datacenter" "dc" {
   name = "Noris"
 }
@@ -19,35 +7,46 @@ data "vsphere_datastore" "datastore" {
   datacenter_id = "${data.vsphere_datacenter.dc.id}"
 }
 
-data "vsphere_resource_pool" "pool" {
-  name          = "testpool"
-  datacenter_id = "${data.vsphere_datacenter.dc.id}"
-}
 
 data "vsphere_network" "network" {
   name          = "VM Network"
   datacenter_id = "${data.vsphere_datacenter.dc.id}"
 }
 
-resource "vsphere_virtual_machine" "vm" {
-  name             = var.vm_name
+data "vsphere_virtual_machine" "template" {
+  name          = "k8s-play-tmpl"
+  datacenter_id = "${data.vsphere_datacenter.dc.id}"
+}
 
-  resource_pool_id = "${data.vsphere_resource_pool.pool.id}"
+resource "vsphere_virtual_machine" "vm" {
+  name             = "terraform-test"
+  resource_pool_id = "${data.vsphere_compute_cluster.cluster.resource_pool_id}"
   datastore_id     = "${data.vsphere_datastore.datastore.id}"
 
+  num_cpus = 2
+  memory   = 1024
+  guest_id = "${data.vsphere_virtual_machine.template.guest_id}"
 
 
   network_interface {
-    network_id = "${data.vsphere_network.network.id}"
+    network_id   = "${data.vsphere_network.network.id}"
   }
-
-  num_cpus = 1
-  memory   = 1024
-  guest_id = "ubuntu64Guest"
 
   disk {
-    label = "disk0"
-    size  = 10
+    label            = "disk0"
+    size             = 10
   }
-  wait_for_guest_net_timeout    = -1
+
+  clone {
+    template_uuid = "${data.vsphere_virtual_machine.template.id}"
+
+    customize {
+      linux_options {
+        host_name = "terraform-test"
+      }
+
+      network_interface {
+      }
+    }
+  }
 }
