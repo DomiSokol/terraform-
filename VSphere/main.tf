@@ -28,8 +28,5 @@ resource "vra_machine" "this" {
 EOF
   }
 
-  disks {
-    block_device_id = vra_block_device.disk1.id
-  }
 }
 
