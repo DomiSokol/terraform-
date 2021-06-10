@@ -39,7 +39,10 @@ resource "vsphere_virtual_machine" "vm" {
   guest_id = "${data.vsphere_virtual_machine.template.guest_id}"
 
   scsi_type = "${data.vsphere_virtual_machine.template.scsi_type}"
-
+  
+  network_interface {
+  network_id   = "${data.vsphere_network.network.id}"
+  }
 
   disk {
     label            = "disk0"
@@ -57,10 +60,6 @@ resource "vsphere_virtual_machine" "vm" {
         host_name = "terraform-test"
         domain    = "test.internal"
       }
-      network_interface {
-      network_id   = "${data.vsphere_network.network.id}"
-      adapter_type = "${data.vsphere_virtual_machine.template.network_interface_types[0]}"
-  }
 
     }
   }
