@@ -45,5 +45,10 @@ resource "vsphere_virtual_machine" "vm" {
     template_uuid = "503cdb36-522c-0087-7117-9ae2fcf4eacb"
   }
 
+  disk {
+    label = "disk0"
+    size  = 10
+  }
+  
   wait_for_guest_net_timeout    = -1
 }
