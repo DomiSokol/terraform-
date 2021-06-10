@@ -20,7 +20,6 @@ data "vsphere_virtual_machine" "template" {
 
 resource "vsphere_virtual_machine" "vm" {
   name             = "terraform-test"
-  resource_pool_id = "${data.vsphere_compute_cluster.cluster.resource_pool_id}"
   datastore_id     = "${data.vsphere_datastore.datastore.id}"
 
   num_cpus = 2
@@ -42,6 +41,8 @@ resource "vsphere_virtual_machine" "vm" {
 
     customize {
       linux_options {
+        user = "Test"
+        password = "Test"
         host_name = "terraform-test"
       }
 
