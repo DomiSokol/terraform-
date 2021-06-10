@@ -19,6 +19,10 @@ data "vsphere_datastore" "datastore" {
   datacenter_id = "${data.vsphere_datacenter.dc.id}"
 }
 
+data "vsphere_resource_pool" "pool" {
+  name          = "testpool"
+  datacenter_id = "${data.vsphere_datacenter.dc.id}"
+}
 
 data "vsphere_network" "network" {
   name          = "VM Network"
@@ -27,6 +31,8 @@ data "vsphere_network" "network" {
 
 resource "vsphere_virtual_machine" "vm" {
   name             = var.vm_name
+
+  resource_pool_id = "${data.vsphere_resource_pool.pool.id}"
   datastore_id     = "${data.vsphere_datastore.datastore.id}"
 
 
@@ -35,13 +41,9 @@ resource "vsphere_virtual_machine" "vm" {
     network_id = "${data.vsphere_network.network.id}"
   }
 
-  num_cpus = 1
-  memory   = 1024
-  guest_id = "other3xLinux64Guest"
-
-  disk {
-    label = "disk0"
-    size  = 10
+  close{
+    template_uuid = "503cdb36-522c-0087-7117-9ae2fcf4eacb"
   }
+
   wait_for_guest_net_timeout    = -1
 }
