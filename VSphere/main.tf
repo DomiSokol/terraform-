@@ -17,6 +17,11 @@ data "vsphere_virtual_machine" "template" {
   datacenter_id = "${data.vsphere_datacenter.dc.id}"
 }
 
+data "vsphere_resource_pool" "pool" {
+  name          = "testpool"
+  datacenter_id = "${data.vsphere_datacenter.dc.id}"
+}
+
 
 provider "vsphere" {
 
@@ -27,6 +32,7 @@ provider "vsphere" {
 resource "vsphere_virtual_machine" "vm" {
   name             = "terraform-test"
   datastore_id     = "${data.vsphere_datastore.datastore.id}"
+  resource_pool_id = "${data.vsphere_resource_pool.pool.id}"
 
   num_cpus = 2
   memory   = 1024
