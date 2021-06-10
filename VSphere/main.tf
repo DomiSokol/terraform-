@@ -1,3 +1,8 @@
+variable "vm_name" {
+  type        = string
+  description = "VM Name"
+}
+
 data "vsphere_datacenter" "dc" {
   name = "Noris"
 }
@@ -30,9 +35,7 @@ provider "vsphere" {
 }
 
 resource "vsphere_virtual_machine" "vm" {
-  name             = "terraform-test"
-  username = "Domi"
-  password = "Domi"
+  name             = var.vm_name
   datastore_id     = "${data.vsphere_datastore.datastore.id}"
   resource_pool_id = "${data.vsphere_resource_pool.pool.id}"
 
