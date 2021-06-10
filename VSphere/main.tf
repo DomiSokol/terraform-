@@ -1,54 +1,84 @@
-variable "vm_name" {
-  type        = string
-  description = "VM Name"
+provider "vra" {
+  url           = var.url
+  refresh_token = var.refresh_token
 }
 
-
-provider "vsphere" {
-
-  # If you have a self-signed cert
-  allow_unverified_ssl = true
+data "vra_project" "this" {
+  name = var.project_name
 }
 
-data "vsphere_datacenter" "dc" {
-  name = "Noris"
+data "vra_blueprint" "this" {
+  name = var.blueprint_name
 }
 
-data "vsphere_datastore" "datastore" {
-  name          = "DemoDS"
-  datacenter_id = "${data.vsphere_datacenter.dc.id}"
-}
+resource "vra_deployment" "this" {
+  name        = var.deployment_name
+  description = "Deployed from vRA provider for Terraform."
 
-data "vsphere_resource_pool" "pool" {
-  name          = "testpool"
-  datacenter_id = "${data.vsphere_datacenter.dc.id}"
-}
+  owner = var.owner
 
-data "vsphere_network" "network" {
-  name          = "VM Network"
-  datacenter_id = "${data.vsphere_datacenter.dc.id}"
-}
+  blueprint_id      = data.vra_blueprint.this.id
+  blueprint_version = var.blueprint_version
+  project_id        = data.vra_project.this.id
 
-resource "vsphere_virtual_machine" "vm" {
-  name             = var.vm_name
-
-  resource_pool_id = "${data.vsphere_resource_pool.pool.id}"
-  datastore_id     = "${data.vsphere_datastore.datastore.id}"
-
-
-
-  network_interface {
-    network_id = "${data.vsphere_network.network.id}"
+  inputs = {
+    flavor = "small"
+    image  = "centos"
+    count  = 1
+    flag   = true
+    arrayProp = jsonencode(["foo", "bar", "baz"])
+    objectProp = jsonencode({ "key": "value", "key2": [1, 2, 3] })
   }
 
-  clone{
-    template_uuid = "503cdb36-522c-0087-7117-9ae2fcf4eacb"
+  timeouts {
+    create = "30m"
+    delete = "30m"
+    update = "30m"
   }
+}
 
-  disk {
-    label = "disk0"
-    size  = 10
+
+output "resources" {
+  description = "All the resources from a vRA deployment"
+  value       = vra_deployment.this.resources
+}
+
+output "resource_properties_by_name" {
+  description = "Properties of all resources by its name from a vRA deployment"
+  value = {
+    for rs in vra_deployment.this.resources :
+    rs.name => jsondecode(rs.properties_json)
   }
-  
-  wait_for_guest_net_timeout    = -1
+}
+
+output "resources_properties" {
+  description = "Properties of all resources from a vRA deployment"
+  value = [
+    for rs in vra_deployment.this.resources :
+    jsondecode(rs.properties_json)
+  ]
+}
+
+output "addresses_by_name" {
+  description = "Resource name and IP addresses of all machine type resources from a vRA deployment"
+  value = {
+    for props in sort(vra_deployment.this.resources.*.properties_json) :
+    jsondecode(props).resourceName => jsondecode(props).address
+    if jsondecode(props).componentType == "Cloud.Machine" || jsondecode(props).componentType == "Cloud.vSphere.Machine" || jsondecode(props).componentType == "Cloud.AWS.EC2.Instance" || jsondecode(props).componentType == "Cloud.GCP.Machine" || jsondecode(props).componentType == "Cloud.Azure.Machine"
+  }
+}
+
+output "first_resource_address" {
+  // Works for simple deployments with only one machine resource with count as 1.
+  description = "IP address property of first resource in a vRA deployment"
+  value       = jsondecode(sort(vra_deployment.this.resources.*.properties_json)[0]).address
+}
+
+output "all_resources_addresses" {
+  // Gives address property from all resources of a deployment
+  description = "IP address property of all resources from a vRA deployment"
+  value = [
+    for props in sort(vra_deployment.this.resources.*.properties_json) :
+    jsondecode(props).address
+  ]
 }
