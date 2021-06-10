@@ -31,6 +31,8 @@ provider "vsphere" {
 
 resource "vsphere_virtual_machine" "vm" {
   name             = "terraform-test"
+  username = "Domi"
+  password = "Domi"
   datastore_id     = "${data.vsphere_datastore.datastore.id}"
   resource_pool_id = "${data.vsphere_resource_pool.pool.id}"
 
@@ -57,8 +59,6 @@ resource "vsphere_virtual_machine" "vm" {
 
     customize {
       linux_options {
-        user = "Domi"
-        password = "Domi"
         host_name = "terraform-test"
         domain    = "test.internal"
       }
