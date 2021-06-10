@@ -66,8 +66,9 @@ resource "vsphere_virtual_machine" "vm" {
         domain    = "test.internal"
       }
       network_interface {
-        network_id = "${data.vsphere_network.private.id}"
+        ipv4_netmask = 24
       }
+      ipv4_gateway = "10.5.12.1"
     }
   }
 }
