@@ -41,7 +41,7 @@ resource "vsphere_virtual_machine" "vm" {
     network_id = "${data.vsphere_network.network.id}"
   }
 
-  close{
+  clone{
     template_uuid = "503cdb36-522c-0087-7117-9ae2fcf4eacb"
   }
 
