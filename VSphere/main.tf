@@ -57,6 +57,8 @@ resource "vsphere_virtual_machine" "vm" {
 
     customize {
       linux_options {
+        user = "Domi"
+        password = "Domi"
         host_name = "terraform-test"
         domain    = "test.internal"
       }
