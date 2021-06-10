@@ -1,46 +1,53 @@
-variable "deployment_name" {
+variable "vm_name" {
   type        = string
   description = "VM Name"
-}  
-variable "project_id" {
-  type        = string
-  description = "VM Name"
-}  
-variable "blueprint_id" {
-  type        = string
-  description = "bluePrintID"
-}  
-variable "blueprint_version" {
-  type        = string
-  description = "bluePrintVersion"
 }
 
-provider "vra" {
-  insecure = true
-  url = "https://vra8.vdi.sclabs.net"
-  refresh_token = "uhlsrxhilMjgdzAwgxPXOs8Lbe6Pyw6h"
+
+provider "vsphere" {
+
+  # If you have a self-signed cert
+  allow_unverified_ssl = true
 }
 
-resource "vra_deployment" "this" {
-  name        = var.deployment_name
-  description = "Deployment description"
+data "vsphere_datacenter" "dc" {
+  name = "Noris"
+}
 
-  blueprint_id      = var.blueprint_id
-  blueprint_version = var.blueprint_version
-  project_id        = var.project_id
+data "vsphere_datastore" "datastore" {
+  name          = "DemoDS"
+  datacenter_id = "${data.vsphere_datacenter.dc.id}"
+}
 
-  inputs = {
-    flavor = "Test-Flavor-Small"
-    image  = "Ubuntu"
-    count  = 1
-    flag   = true
-    arrayProp = jsonencode(["foo", "bar", "baz"])
-    objectProp = jsonencode({ "key": "value", "key2": [1, 2, 3] })
+data "vsphere_resource_pool" "pool" {
+  name          = "testpool"
+  datacenter_id = "${data.vsphere_datacenter.dc.id}"
+}
+
+data "vsphere_network" "network" {
+  name          = "VM Network"
+  datacenter_id = "${data.vsphere_datacenter.dc.id}"
+}
+
+resource "vsphere_virtual_machine" "vm" {
+  name             = var.vm_name
+
+  resource_pool_id = "${data.vsphere_resource_pool.pool.id}"
+  datastore_id     = "${data.vsphere_datastore.datastore.id}"
+
+
+
+  network_interface {
+    network_id = "${data.vsphere_network.network.id}"
   }
 
-  timeouts {
-    create = "30m"
-    delete = "30m"
-    update = "30m"
+  num_cpus = 1
+  memory   = 1024
+  guest_id = "ubuntu64Guest"
+
+  disk {
+    label = "disk0"
+    size  = 10
   }
+  wait_for_guest_net_timeout    = -1
 }
