@@ -46,7 +46,7 @@ resource "vsphere_virtual_machine" "vm" {
   scsi_type = "${data.vsphere_virtual_machine.template.scsi_type}"
   
   network_interface {
-  network_id   = "${data.vsphere_network.network.id}"
+    network_id   = "${data.vsphere_network.network.id}"
   }
 
   disk {
@@ -59,6 +59,11 @@ resource "vsphere_virtual_machine" "vm" {
   
   clone {
     template_uuid = "${data.vsphere_virtual_machine.template.id}"
+     customize {
+      linux_options {
+        host_name = "terraform-test42"
+      }
+     }
  
   }
 }
